@@ -1,4 +1,3 @@
-use core::panic;
 use std::fmt;
 
 /// The `Graph` struct provides the functionalities to create and manipulate graphs.
@@ -38,13 +37,13 @@ impl Graph {
     /// let mut adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
     /// adj_mat[0][4] = 1.0;
     /// adj_mat[4][2] = 2.0;
-    /// let g = graphst::Graph::from_matrix(adj_mat);
+    /// let g = graphst::Graph::from_adjacency_matrix(adj_mat);
     /// ```
-    pub fn from_matrix(adj_mat: Vec<Vec<f32>>) -> Graph {
+    pub fn from_adjacency_matrix(adj_mat: Vec<Vec<f32>>) -> Graph {
         let n_nodes = adj_mat.len();
         for node_edges in &adj_mat {
             if node_edges.len() != n_nodes {
-                panic!("[Graph::from_matrix] Error: The adjacency matrix is not squared!");
+                panic!("[Graph::from_adjacency_matrix] Error: The adjacency matrix is not squared!");
             }
         }
         Graph { n_nodes, adj_mat }
@@ -56,7 +55,7 @@ impl Graph {
     ///
     /// ```
     /// let adj_mat = vec![vec![0.0; 3]; 3]; // graph with 3 nodes
-    /// let g = graphst::Graph::from_matrix(adj_mat);
+    /// let g = graphst::Graph::from_adjacency_matrix(adj_mat);
     /// let nodes = g.get_nodes();
     /// assert_eq!(nodes, vec![0, 1, 2]);
     /// ```
@@ -91,7 +90,7 @@ impl Graph {
     ///
     /// ```
     /// let adj_mat = vec![vec![0.0; 3]; 3]; // graph with 3 nodes
-    /// let mut g = graphst::Graph::from_matrix(adj_mat);
+    /// let mut g = graphst::Graph::from_adjacency_matrix(adj_mat);
     /// g.add_connection(0, 1);
     /// g.add_connection(1, 2);
     /// g.add_connection(2, 2);
@@ -116,7 +115,7 @@ impl Graph {
     ///
     /// ```
     /// let adj_mat = vec![vec![0.0; 3]; 3]; // graph with 3 nodes
-    /// let mut g = graphst::Graph::from_matrix(adj_mat);
+    /// let mut g = graphst::Graph::from_adjacency_matrix(adj_mat);
     /// g.add_undirected_connection(0, 1);
     /// g.add_undirected_connection(2, 1);
     /// ```
@@ -141,7 +140,7 @@ impl Graph {
     ///
     /// ```
     /// let adj_mat = vec![vec![0.0; 3]; 3]; // graph with 3 nodes
-    /// let mut g = graphst::Graph::from_matrix(adj_mat);
+    /// let mut g = graphst::Graph::from_adjacency_matrix(adj_mat);
     /// g.add_weighted_connection(0, 1, 2.0);
     /// g.add_weighted_connection(1, 2, 3.2);
     /// g.add_weighted_connection(2, 2, -1.0);
@@ -166,15 +165,13 @@ impl Graph {
     ///
     /// ```
     /// let adj_mat = vec![vec![0.0; 3]; 3]; // graph with 3 nodes
-    /// let mut g = graphst::Graph::from_matrix(adj_mat);
+    /// let mut g = graphst::Graph::from_adjacency_matrix(adj_mat);
     /// g.add_undirected_weighted_connection(0, 1, 1.5);
     /// g.add_undirected_weighted_connection(2, 1, 2.0);
     /// ```
     pub fn add_undirected_weighted_connection(&mut self, src: usize, dest: usize, weight: f32) {
         if src >= self.n_nodes {
-            panic!(
-                "[Graph::add_undirected_weighted_connection] Error: The source node is not valid!"
-            );
+            panic!("[Graph::add_undirected_weighted_connection] Error: The source node is not valid!");
         } else if dest >= self.n_nodes {
             panic!("[Graph::add_undirected_weighted_connection] Error: The destination node is not valid!");
         }

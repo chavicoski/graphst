@@ -6,7 +6,7 @@ fn main() {
 
     let n_nodes = 5;
     let mat = vec![vec![0.0; n_nodes]; n_nodes];
-    let mut g = Graph::from_matrix(mat);
+    let mut g = Graph::from_adjacency_matrix(mat);
     g.add_connection(0, 0);
     g.add_connection(0, 3);
     g.add_connection(4, 2);
