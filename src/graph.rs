@@ -154,6 +154,101 @@ impl Graph {
         &self.adj_mat
     }
 
+    /// Returns a vector with the nodes that are neighbors of the node passed as a parameter.
+    ///
+    /// # Arguments
+    ///
+    /// * `node` - `usize` value of the node to find its neighbours from.
+    ///
+    /// # Panics
+    ///
+    /// * If the node passed as a parameter is not valid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let n_nodes = 3;
+    /// let edges = vec![(0, 1), (1, 2), (2, 1), (2, 2)];
+    /// let g = graphst::Graph::from_edges(n_nodes, edges);
+    /// let neighbors_of_2 = g.get_neighbors_of(2);
+    /// assert_eq!(neighbors_of_2, vec![1, 2]);
+    /// ```
+    pub fn get_neighbors_of(&self, node: usize) -> Vec<usize> {
+        if node >= self.n_nodes {
+            panic!(
+                "[Graph::get_neighbors_of] Error: The node {} is not valid",
+                node
+            );
+        }
+        self.adj_mat[node]
+            .iter()
+            .enumerate()
+            .filter(|(_, w)| **w != 0.0)
+            .map(|(idx, _)| idx)
+            .collect()
+    }
+
+    /// Gets the weight of the edge from the node `src` to `dest`. If the graph is not weighted
+    /// the value will be `1.0`. If the edge doesn't exist the returned value will be `0.0`.
+    ///
+    /// # Arguments
+    ///
+    /// * `src` - `usize` value of the source node.
+    /// * `dest` - `usize` value of the destination node.
+    ///
+    /// # Panics
+    ///
+    /// * If the value of `src` or `dest` is not valid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let n_nodes = 3;
+    /// let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+    /// let mut g = graphst::Graph::from_adjacency_matrix(adj_mat);
+    /// g.add_connection(1, 2);
+    /// g.add_weighted_connection(0, 1, 3.5);
+    /// let edge_1_2 = g.get_edge(1, 2);
+    /// let edge_0_1 = g.get_edge(0, 1);
+    /// let edge_0_2 = g.get_edge(0, 2); // this edge doesn't exist
+    /// assert_eq!(edge_1_2, 1.0);
+    /// assert_eq!(edge_0_1, 3.5);
+    /// assert_eq!(edge_0_2, 0.0);
+    /// ```
+    pub fn get_edge(&self, src: usize, dest: usize) -> f32 {
+        if src >= self.n_nodes {
+            panic!(
+                "[Graph::get_edge] Error: The source node {} is not valid!",
+                src
+            );
+        } else if dest >= self.n_nodes {
+            panic!(
+                "[Graph::get_edge] Error: The destination node {} is not valid!",
+                dest
+            );
+        }
+        self.adj_mat[src][dest]
+    }
+
+    /// Adds a node to the graph without any edge.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut g = graphst::Graph::new(); // empty graph
+    /// g.add_node();
+    /// g.add_node();
+    /// let g_nodes = g.get_nodes();
+    /// assert_eq!(g_nodes, vec![0, 1]);
+    /// ```
+    pub fn add_node(&mut self) {
+        for node in &mut self.adj_mat {
+            node.push(0.0); // add a new value for setting the edges to the new node
+        }
+        self.n_nodes += 1;
+        self.adj_mat.push(vec![0.0; self.n_nodes]); // add the new node edges vector
+    }
+
     /// Sets a directed connection from the node `src` to the node `dest`.
     /// The weight of the edge is set to `1.0`.
     ///
@@ -178,9 +273,15 @@ impl Graph {
     /// ```
     pub fn add_connection(&mut self, src: usize, dest: usize) {
         if src >= self.n_nodes {
-            panic!("[Graph::add_connection] Error: The source node is not valid!");
+            panic!(
+                "[Graph::add_connection] Error: The source node {} is not valid!",
+                src
+            );
         } else if dest >= self.n_nodes {
-            panic!("[Graph::add_connection] Error: The destination node is not valid!");
+            panic!(
+                "[Graph::add_connection] Error: The destination node {} is not valid!",
+                dest
+            );
         }
         self.adj_mat[src][dest] = 1.0;
     }
@@ -208,9 +309,15 @@ impl Graph {
     /// ```
     pub fn add_undirected_connection(&mut self, src: usize, dest: usize) {
         if src >= self.n_nodes {
-            panic!("[Graph::add_undirected_connection] Error: The source node is not valid!");
+            panic!(
+                "[Graph::add_undirected_connection] Error: The source node {} is not valid!",
+                src
+            );
         } else if dest >= self.n_nodes {
-            panic!("[Graph::add_undirected_connection] Error: The destination node is not valid!");
+            panic!(
+                "[Graph::add_undirected_connection] Error: The destination node {} is not valid!",
+                dest
+            );
         }
         self.adj_mat[src][dest] = 1.0;
         self.adj_mat[dest][src] = 1.0;
@@ -241,9 +348,15 @@ impl Graph {
     /// ```
     pub fn add_weighted_connection(&mut self, src: usize, dest: usize, weight: f32) {
         if src >= self.n_nodes {
-            panic!("[Graph::add_weighted_connection] Error: The source node is not valid!");
+            panic!(
+                "[Graph::add_weighted_connection] Error: The source node {} is not valid!",
+                src
+            );
         } else if dest >= self.n_nodes {
-            panic!("[Graph::add_weighted_connection] Error: The destination node is not valid!");
+            panic!(
+                "[Graph::add_weighted_connection] Error: The destination node {} is not valid!",
+                dest
+            );
         }
         self.adj_mat[src][dest] = weight;
     }
@@ -272,10 +385,14 @@ impl Graph {
     pub fn add_undirected_weighted_connection(&mut self, src: usize, dest: usize, weight: f32) {
         if src >= self.n_nodes {
             panic!(
-                "[Graph::add_undirected_weighted_connection] Error: The source node is not valid!"
+                "[Graph::add_undirected_weighted_connection] Error: The source node {} is not valid!", 
+                src
             );
         } else if dest >= self.n_nodes {
-            panic!("[Graph::add_undirected_weighted_connection] Error: The destination node is not valid!");
+            panic!(
+                "[Graph::add_undirected_weighted_connection] Error: The destination node {} is not valid!", 
+                dest
+            );
         }
         self.adj_mat[src][dest] = weight;
         self.adj_mat[dest][src] = weight;
