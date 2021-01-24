@@ -28,32 +28,61 @@ impl Graph {
     /// # Arguments
     ///
     /// * `n_nodes` - An `usize` value with the number of nodes in the graph.
-    /// * `edges` - A vector of vectors with two `usize` values defining each edge (`vec![src, dest]`).
+    /// * `edges` - A vector of tuples with two `usize` values defining each edge (`(src, dest)`).
     ///
     /// # Panics
     ///
-    /// * If the edge vectors are not of length 2.
     /// * If some edge has an invalid node value.
     ///
     /// # Examples
     ///
     /// ```
     /// let n_nodes = 3;
-    /// let edges = vec![vec![0, 1], vec![1, 2], vec![2, 2]];
+    /// let edges = vec![(0, 1), (1, 2), (2, 2)];
     /// let g = graphst::Graph::from_edges(n_nodes, edges);
     /// ```
-    pub fn from_edges(n_nodes: usize, edges: Vec<Vec<usize>>) -> Graph {
+    pub fn from_edges(n_nodes: usize, edges: Vec<(usize, usize)>) -> Graph {
         let mut adj_mat: Vec<Vec<f32>> = vec![vec![0.0; n_nodes]; n_nodes];
         for edge in edges {
-            if edge.len() != 2 {
-                panic!("[Graph::from_edges] Error: Each edge must be defined by a vector of shape [src, dest]!");
-            } else if edge[0] >= n_nodes || edge[1] >= n_nodes {
+            if edge.0 >= n_nodes || edge.1 >= n_nodes {
                 panic!(
                     "[Graph::from_edges] Error: The edge {:?} is not valid!",
                     edge
                 );
             }
-            adj_mat[edge[0]][edge[1]] = 1.0;
+            adj_mat[edge.0][edge.1] = 1.0;
+        }
+        Graph { n_nodes, adj_mat }
+    }
+
+    /// Creates a `Graph` from the definition of the graph edges (with weight) and the number of nodes.
+    ///
+    /// # Arguments
+    ///
+    /// * `n_nodes` - An `usize` value with the number of nodes in the graph.
+    /// * `edges` - A vector of triplets with two `usize` values and a `f32` defining each edge (`(src, dest, weight)`).
+    ///
+    /// # Panics
+    ///
+    /// * If some edge has an invalid node value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let n_nodes = 3;
+    /// let edges = vec![(0, 1, 2.0), (1, 2, 1.5), (2, 2, -0.5)];
+    /// let g = graphst::Graph::from_weighted_edges(n_nodes, edges);
+    /// ```
+    pub fn from_weighted_edges(n_nodes: usize, edges: Vec<(usize, usize, f32)>) -> Graph {
+        let mut adj_mat: Vec<Vec<f32>> = vec![vec![0.0; n_nodes]; n_nodes];
+        for edge in edges {
+            if edge.0 >= n_nodes || edge.1 >= n_nodes {
+                panic!(
+                    "[Graph::from_edges] Error: The edge {:?} is not valid!",
+                    edge
+                );
+            }
+            adj_mat[edge.0][edge.1] = edge.2;
         }
         Graph { n_nodes, adj_mat }
     }
@@ -113,7 +142,7 @@ impl Graph {
     ///
     /// ```
     /// let n_nodes = 3;
-    /// let edges = vec![vec![0, 1], vec![1, 2], vec![2, 2]];
+    /// let edges = vec![(0, 1), (1, 2), (2, 2)];
     /// let g = graphst::Graph::from_edges(n_nodes, edges);
     /// let g_adj_mat = g.get_adjacency_matrix();
     /// let test_mat: Vec<Vec<f32>> = vec![vec![0.0, 1.0, 0.0],

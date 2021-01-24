@@ -15,13 +15,13 @@ fn main() {
     println!("The nodes of g are: {:?}\n", g.get_nodes());
 
     let edges = vec![
-        vec![0, 1],
-        vec![1, 2],
-        vec![2, 4],
-        vec![4, 3],
-        vec![3, 0],
-        vec![3, 1],
-        vec![3, 3],
+        (0, 1),
+        (1, 2),
+        (2, 4),
+        (4, 3),
+        (3, 0),
+        (3, 1),
+        (3, 3),
     ];
     let g2 = Graph::from_edges(n_nodes, edges);
     println!("g2:\n{}", g2);
