@@ -33,6 +33,7 @@ impl Graph {
     /// # Panics
     ///
     /// * If some edge has an invalid node value.
+    /// * If the pair (src, dest) of an edge is repeated.
     ///
     /// # Examples
     ///
@@ -50,7 +51,14 @@ impl Graph {
                     edge
                 );
             }
-            adj_mat[edge.0][edge.1] = 1.0;
+            if adj_mat[edge.0][edge.1] != 0.0 {
+                panic!(
+                    "[Graph::from_edges] Error: The edge ({})->({}) is repeated!",
+                    edge.0, edge.1
+                );
+            } else {
+                adj_mat[edge.0][edge.1] = 1.0;
+            }
         }
         Graph { n_nodes, adj_mat }
     }
@@ -65,6 +73,7 @@ impl Graph {
     /// # Panics
     ///
     /// * If some edge has an invalid node value.
+    /// * If the pair (src, dest, _) of an edge is repeated.
     ///
     /// # Examples
     ///
@@ -78,11 +87,18 @@ impl Graph {
         for edge in edges {
             if edge.0 >= n_nodes || edge.1 >= n_nodes {
                 panic!(
-                    "[Graph::from_edges] Error: The edge {:?} is not valid!",
+                    "[Graph::from_weighted_edges] Error: The edge {:?} is not valid!",
                     edge
                 );
             }
-            adj_mat[edge.0][edge.1] = edge.2;
+            if adj_mat[edge.0][edge.1] != 0.0 {
+                panic!(
+                    "[Graph::from_weighted_edges] Error: The edge ({})->({}) is repeated!",
+                    edge.0, edge.1
+                );
+            } else {
+                adj_mat[edge.0][edge.1] = edge.2;
+            }
         }
         Graph { n_nodes, adj_mat }
     }
@@ -412,5 +428,230 @@ impl fmt::Display for Graph {
             }
         }
         write!(f, "], n_nodes={})", self.n_nodes)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Graph;
+
+    #[test]
+    fn constructor_new() {
+        let g = Graph::new();
+        assert_eq!(g.n_nodes, 0);
+        assert_eq!(g.adj_mat.len(), 0);
+    }
+
+    #[test]
+    fn constructor_from_edges() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1), (1, 2), (2, 2)];
+        let g = Graph::from_edges(n_nodes, edges);
+        assert_eq!(g.n_nodes, 3);
+        // Check that the adjacency matrix is squared
+        assert_eq!(g.adj_mat.len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[0].len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[1].len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[2].len(), 3, "The matrix is not squared.");
+        // Check all the adjacency matrix values
+        assert_eq!(
+            g.adj_mat[0][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[0][0]
+        );
+        assert_eq!(
+            g.adj_mat[0][1], 1.0,
+            "This edge should be 1.0 but is {}",
+            g.adj_mat[0][1]
+        );
+        assert_eq!(
+            g.adj_mat[0][2], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[0][2]
+        );
+        assert_eq!(
+            g.adj_mat[1][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[1][0]
+        );
+        assert_eq!(
+            g.adj_mat[1][1], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[1][1]
+        );
+        assert_eq!(
+            g.adj_mat[1][2], 1.0,
+            "This edge should be 1.0 but is {}",
+            g.adj_mat[1][2]
+        );
+        assert_eq!(
+            g.adj_mat[2][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[2][0]
+        );
+        assert_eq!(
+            g.adj_mat[2][1], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[2][1]
+        );
+        assert_eq!(
+            g.adj_mat[2][2], 1.0,
+            "This edge should be 1.0 but is {}",
+            g.adj_mat[2][2]
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "not valid")]
+    fn constructor_from_edges_panic_not_valid_edge() {
+        let n_nodes = 1;
+        let edges = vec![(0, 1)];
+        let _g = Graph::from_edges(n_nodes, edges);
+    }
+
+    #[test]
+    #[should_panic(expected = "is repeated")]
+    fn constructor_from_edges_panic_repeated_edge() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1), (1, 2), (1, 2)];
+        let _g = Graph::from_edges(n_nodes, edges);
+    }
+
+    #[test]
+    fn constructor_from_weighted_edges() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1, 2.3), (1, 2, 1.2), (2, 2, -1.0)];
+        let g = Graph::from_weighted_edges(n_nodes, edges);
+        assert_eq!(g.n_nodes, 3);
+        // Check that the adjacency matrix is squared
+        assert_eq!(g.adj_mat.len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[0].len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[1].len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[2].len(), 3, "The matrix is not squared.");
+        // Check all the adjacency matrix values
+        assert_eq!(
+            g.adj_mat[0][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[0][0]
+        );
+        assert_eq!(
+            g.adj_mat[0][1], 2.3,
+            "This edge should be 2.3 but is {}",
+            g.adj_mat[0][1]
+        );
+        assert_eq!(
+            g.adj_mat[0][2], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[0][2]
+        );
+        assert_eq!(
+            g.adj_mat[1][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[1][0]
+        );
+        assert_eq!(
+            g.adj_mat[1][1], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[1][1]
+        );
+        assert_eq!(
+            g.adj_mat[1][2], 1.2,
+            "This edge should be 1.2 but is {}",
+            g.adj_mat[1][2]
+        );
+        assert_eq!(
+            g.adj_mat[2][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[2][0]
+        );
+        assert_eq!(
+            g.adj_mat[2][1], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[2][1]
+        );
+        assert_eq!(
+            g.adj_mat[2][2], -1.0,
+            "This edge should be -1.0 but is {}",
+            g.adj_mat[2][2]
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "not valid")]
+    fn constructor_from_weighted_edges_panic_not_valid_edge() {
+        let n_nodes = 2;
+        let edges = vec![(0, 1, 1.5), (2, 0, 1.1)];
+        let _g = Graph::from_weighted_edges(n_nodes, edges);
+    }
+
+    #[test]
+    #[should_panic(expected = "is repeated")]
+    fn constructor_from_weighted_edges_panic_repeated_edge() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1, 2.3), (1, 2, 1.2), (1, 2, -1.0)];
+        let _g = Graph::from_weighted_edges(n_nodes, edges);
+    }
+
+    #[test]
+    fn constructor_from_adjacency_matrix() {
+        let n_nodes = 3;
+        let mut adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        adj_mat[0][1] = 1.0;
+        adj_mat[1][1] = 0.5;
+        adj_mat[1][2] = 2.0;
+        adj_mat[2][2] = -1.0;
+        let g = Graph::from_adjacency_matrix(adj_mat);
+        assert_eq!(
+            g.adj_mat[0][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[0][0]
+        );
+        assert_eq!(
+            g.adj_mat[0][1], 1.0,
+            "This edge should be 1.0 but is {}",
+            g.adj_mat[0][1]
+        );
+        assert_eq!(
+            g.adj_mat[0][2], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[0][2]
+        );
+        assert_eq!(
+            g.adj_mat[1][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[1][0]
+        );
+        assert_eq!(
+            g.adj_mat[1][1], 0.5,
+            "This edge should be 0.5 but is {}",
+            g.adj_mat[1][1]
+        );
+        assert_eq!(
+            g.adj_mat[1][2], 2.0,
+            "This edge should be 2.0 but is {}",
+            g.adj_mat[1][2]
+        );
+        assert_eq!(
+            g.adj_mat[2][0], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[2][0]
+        );
+        assert_eq!(
+            g.adj_mat[2][1], 0.0,
+            "This edge should be 0.0 but is {}",
+            g.adj_mat[2][1]
+        );
+        assert_eq!(
+            g.adj_mat[2][2], -1.0,
+            "This edge should be -1.0 but is {}",
+            g.adj_mat[2][2]
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "not squared")]
+    fn constructor_from_adjacency_matrix_panic_not_squared() {
+        let adj_mat = vec![vec![0.0, 1.1], vec![1.0, 0.0, 0.0]];
+        let _g = Graph::from_adjacency_matrix(adj_mat);
     }
 }
