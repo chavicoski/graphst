@@ -146,7 +146,7 @@ impl Graph {
     /// let nodes = g.get_nodes();
     /// assert_eq!(nodes, vec![0, 1, 2]);
     /// ```
-    pub fn get_nodes(self) -> Vec<usize> {
+    pub fn get_nodes(&self) -> Vec<usize> {
         (0..self.n_nodes).collect()
     }
 
@@ -161,9 +161,11 @@ impl Graph {
     /// let edges = vec![(0, 1), (1, 2), (2, 2)];
     /// let g = graphst::Graph::from_edges(n_nodes, edges);
     /// let g_adj_mat = g.get_adjacency_matrix();
-    /// let test_mat: Vec<Vec<f32>> = vec![vec![0.0, 1.0, 0.0],
-    ///                                    vec![0.0, 0.0, 1.0],
-    ///                                    vec![0.0, 0.0, 1.0]];
+    /// let test_mat: Vec<Vec<f32>> = vec![
+    ///     vec![0.0, 1.0, 0.0],
+    ///     vec![0.0, 0.0, 1.0],
+    ///     vec![0.0, 0.0, 1.0],
+    /// ];
     /// assert_eq!(g_adj_mat, &test_mat);
     /// ```
     pub fn get_adjacency_matrix<'a>(&'a self) -> &'a Vec<Vec<f32>> {
@@ -205,7 +207,7 @@ impl Graph {
     }
 
     /// Gets the weight of the edge from the node `src` to `dest`. If the graph is not weighted
-    /// the value will be `1.0`. If the edge doesn't exist the returned value will be `0.0`.
+    /// the value will be `1.0`. If the edge doesn't exist the returned value will be `None`.
     ///
     /// # Arguments
     ///
@@ -224,14 +226,14 @@ impl Graph {
     /// let mut g = graphst::Graph::from_adjacency_matrix(adj_mat);
     /// g.add_connection(1, 2);
     /// g.add_weighted_connection(0, 1, 3.5);
-    /// let edge_1_2 = g.get_edge(1, 2);
-    /// let edge_0_1 = g.get_edge(0, 1);
-    /// let edge_0_2 = g.get_edge(0, 2); // this edge doesn't exist
+    /// let edge_1_2 = g.get_edge(1, 2).expect("The edge doesn't exist");
+    /// let edge_0_1 = g.get_edge(0, 1).expect("The edge doesn't exist");
+    /// let edge_0_2 = g.get_edge(0, 2).unwrap_or(0.0); // this edge doesn't exist
     /// assert_eq!(edge_1_2, 1.0);
     /// assert_eq!(edge_0_1, 3.5);
     /// assert_eq!(edge_0_2, 0.0);
     /// ```
-    pub fn get_edge(&self, src: usize, dest: usize) -> f32 {
+    pub fn get_edge(&self, src: usize, dest: usize) -> Option<f32> {
         if src >= self.n_nodes {
             panic!(
                 "[Graph::get_edge] Error: The source node {} is not valid!",
@@ -243,7 +245,11 @@ impl Graph {
                 dest
             );
         }
-        self.adj_mat[src][dest]
+        if self.adj_mat[src][dest] != 0.0 {
+            return Some(self.adj_mat[src][dest]);
+        } else {
+            return None;
+        }
     }
 
     /// Adds a node to the graph without any edge.
@@ -653,5 +659,109 @@ mod tests {
     fn constructor_from_adjacency_matrix_panic_not_squared() {
         let adj_mat = vec![vec![0.0, 1.1], vec![1.0, 0.0, 0.0]];
         let _g = Graph::from_adjacency_matrix(adj_mat);
+    }
+
+    #[test]
+    fn get_nodes_check_values() {
+        let n_nodes = 4;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let g = Graph::from_adjacency_matrix(adj_mat);
+        let nodes = g.get_nodes();
+        assert_eq!(nodes, vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn get_nodes_check_empty_case() {
+        let g = Graph::new();
+        let nodes = g.get_nodes();
+        assert_eq!(nodes, vec![]);
+    }
+
+    #[test]
+    fn get_adjacency_matrix_check_values() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1), (1, 2), (2, 2)];
+        let g = Graph::from_edges(n_nodes, edges);
+        let g_adj_mat = g.get_adjacency_matrix();
+        let test_mat: Vec<Vec<f32>> = vec![
+            vec![0.0, 1.0, 0.0],
+            vec![0.0, 0.0, 1.0],
+            vec![0.0, 0.0, 1.0],
+        ];
+        assert_eq!(g_adj_mat, &test_mat);
+    }
+
+    #[test]
+    fn get_neighbors_of_check_values() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1), (1, 2), (2, 1), (2, 2)];
+        let g = Graph::from_edges(n_nodes, edges);
+        assert_eq!(g.get_neighbors_of(0), vec![1]);
+        assert_eq!(g.get_neighbors_of(1), vec![2]);
+        assert_eq!(g.get_neighbors_of(2), vec![1, 2]);
+    }
+
+    #[test]
+    #[should_panic(expected = "not valid")]
+    fn get_neighbors_of_panic_not_valid_node() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1), (1, 2), (2, 1), (2, 2)];
+        let g = Graph::from_edges(n_nodes, edges);
+        let _neighbors = g.get_neighbors_of(3);
+    }
+
+    #[test]
+    fn get_edge_check_values() {
+        let adj_mat: Vec<Vec<f32>> = vec![
+            vec![0.0, 1.0, 0.0],
+            vec![0.0, 0.0, 0.5],
+            vec![0.0, 0.0, 2.0],
+        ];
+        let g = Graph::from_adjacency_matrix(adj_mat);
+        let edge_0_1 = g.get_edge(0, 1).expect("The edge doesn't exist");
+        let edge_1_2 = g.get_edge(1, 2).expect("The edge doesn't exist");
+        let edge_2_2 = g.get_edge(2, 2).expect("The edge doesn't exist");
+        assert_eq!(edge_0_1, 1.0);
+        assert_eq!(edge_1_2, 0.5);
+        assert_eq!(edge_2_2, 2.0);
+    }
+
+    #[test]
+    #[should_panic(expected = "source node")]
+    fn get_edge_panic_not_valid_src() {
+        let adj_mat: Vec<Vec<f32>> = vec![
+            vec![0.0, 1.0, 0.0],
+            vec![0.0, 0.0, 0.5],
+            vec![0.0, 0.0, 2.0],
+        ];
+        let g = Graph::from_adjacency_matrix(adj_mat);
+        let _edge_0_3 = g.get_edge(3, 2).expect("The edge doesn't exist");
+    }
+
+    #[test]
+    #[should_panic(expected = "destination node")]
+    fn get_edge_panic_not_valid_dest() {
+        let adj_mat: Vec<Vec<f32>> = vec![
+            vec![0.0, 1.0, 0.0],
+            vec![0.0, 0.0, 0.5],
+            vec![0.0, 0.0, 2.0],
+        ];
+        let g = Graph::from_adjacency_matrix(adj_mat);
+        let _edge_0_3 = g.get_edge(0, 3).expect("The edge doesn't exist");
+    }
+
+    #[test]
+    fn add_node_status_check() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1), (1, 2), (2, 2)];
+        let mut g = Graph::from_edges(n_nodes, edges);
+        let g_nodes = g.get_nodes();
+        assert_eq!(g_nodes, vec![0, 1, 2]);
+        g.add_node();
+        let g_nodes = g.get_nodes();
+        assert_eq!(g_nodes, vec![0, 1, 2, 3]);
+        g.add_node();
+        let g_nodes = g.get_nodes();
+        assert_eq!(g_nodes, vec![0, 1, 2, 3, 4]);
     }
 }
