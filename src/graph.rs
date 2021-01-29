@@ -751,7 +751,7 @@ mod tests {
     }
 
     #[test]
-    fn add_node_status_check() {
+    fn add_node_check_status() {
         let n_nodes = 3;
         let edges = vec![(0, 1), (1, 2), (2, 2)];
         let mut g = Graph::from_edges(n_nodes, edges);
@@ -763,5 +763,127 @@ mod tests {
         g.add_node();
         let g_nodes = g.get_nodes();
         assert_eq!(g_nodes, vec![0, 1, 2, 3, 4]);
+    }
+
+    #[test]
+    fn add_connection_check_status() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_connection(0, 1);
+        g.add_connection(1, 2);
+        g.add_connection(2, 2);
+        assert_eq!(g.adj_mat[0][1], 1.0);
+        assert_eq!(g.adj_mat[1][2], 1.0);
+        assert_eq!(g.adj_mat[2][2], 1.0);
+    }
+
+    #[test]
+    #[should_panic(expected = "source node")]
+    fn add_connection_panic_not_valid_src() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_connection(3, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "destination node")]
+    fn add_connection_panic_not_valid_dest() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_connection(2, 3);
+    }
+
+    #[test]
+    fn add_undirected_connection_check_status() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_undirected_connection(0, 1);
+        g.add_undirected_connection(2, 2);
+        assert_eq!(g.adj_mat[0][1], 1.0);
+        assert_eq!(g.adj_mat[1][0], 1.0);
+        assert_eq!(g.adj_mat[2][2], 1.0);
+    }
+
+    #[test]
+    #[should_panic(expected = "source node")]
+    fn add_undirected_connection_panic_not_valid_src() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_undirected_connection(3, 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "destination node")]
+    fn add_undirected_connection_panic_not_valid_dest() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_undirected_connection(2, 3);
+    }
+
+    #[test]
+    fn add_weighted_connection_check_status() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_weighted_connection(0, 1, 2.0);
+        g.add_weighted_connection(1, 2, 1.5);
+        g.add_weighted_connection(2, 2, -1.2);
+        assert_eq!(g.adj_mat[0][1], 2.0);
+        assert_eq!(g.adj_mat[1][2], 1.5);
+        assert_eq!(g.adj_mat[2][2], -1.2);
+    }
+
+    #[test]
+    #[should_panic(expected = "source node")]
+    fn add_weighted_connection_panic_not_valid_src() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_weighted_connection(3, 1, 2.0);
+    }
+
+    #[test]
+    #[should_panic(expected = "destination node")]
+    fn add_weighted_connection_panic_not_valid_dest() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_weighted_connection(2, 3, 2.0);
+    }
+
+    #[test]
+    fn add_undirected_weighted_connection_check_status() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_undirected_weighted_connection(0, 1, 3.2);
+        g.add_undirected_weighted_connection(2, 2, 2.0);
+        assert_eq!(g.adj_mat[0][1], 3.2);
+        assert_eq!(g.adj_mat[1][0], 3.2);
+        assert_eq!(g.adj_mat[2][2], 2.0);
+    }
+
+    #[test]
+    #[should_panic(expected = "source node")]
+    fn add_undirected_weighted_connection_panic_not_valid_src() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_undirected_weighted_connection(3, 1, 2.0);
+    }
+
+    #[test]
+    #[should_panic(expected = "destination node")]
+    fn add_undirected_weighted_connection_panic_not_valid_dest() {
+        let n_nodes = 3;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let mut g = Graph::from_adjacency_matrix(adj_mat);
+        g.add_undirected_weighted_connection(2, 3, 2.0);
     }
 }
