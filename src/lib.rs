@@ -4,3 +4,5 @@
 
 mod graph;
 pub use graph::Graph;
+
+pub mod algorithm;

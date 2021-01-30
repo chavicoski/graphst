@@ -135,6 +135,21 @@ impl Graph {
         Graph { n_nodes, adj_mat }
     }
 
+    /// Returns the number of nodes in the graph.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let n_nodes = 3;
+    /// let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+    /// let g = graphst::Graph::from_adjacency_matrix(adj_mat);
+    /// let nodes = g.get_n_nodes();
+    /// assert_eq!(nodes, 3);
+    /// ```
+    pub fn get_n_nodes(&self) -> usize {
+        self.n_nodes
+    }
+    
     /// Returns a vector with nodes (`usize` references) of the graph.
     ///
     /// # Examples
@@ -659,6 +674,22 @@ mod tests {
     fn constructor_from_adjacency_matrix_panic_not_squared() {
         let adj_mat = vec![vec![0.0, 1.1], vec![1.0, 0.0, 0.0]];
         let _g = Graph::from_adjacency_matrix(adj_mat);
+    }
+
+    #[test]
+    fn get_n_nodes_check_value() {
+        let n_nodes = 4;
+        let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
+        let g = Graph::from_adjacency_matrix(adj_mat);
+        let nodes = g.get_n_nodes();
+        assert_eq!(nodes, 4);
+    }
+
+    #[test]
+    fn get_n_nodes_check_empty_graph() {
+        let g = Graph::new();
+        let nodes = g.get_n_nodes();
+        assert_eq!(nodes, 0);
     }
 
     #[test]
