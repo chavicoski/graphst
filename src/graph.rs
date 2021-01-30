@@ -28,7 +28,8 @@ impl Graph {
     /// # Arguments
     ///
     /// * `n_nodes` - An `usize` value with the number of nodes in the graph.
-    /// * `edges` - A vector of tuples with two `usize` values defining each edge (`(src, dest)`).
+    /// * `edges` - A vector of tuples with two `usize` values defining each
+    ///             edge (`(src, dest)`).
     ///
     /// # Panics
     ///
@@ -63,12 +64,14 @@ impl Graph {
         Graph { n_nodes, adj_mat }
     }
 
-    /// Creates a `Graph` from the definition of the graph edges (with weight) and the number of nodes.
+    /// Creates a `Graph` from the definition of the graph edges (with weight)
+    /// and the number of nodes.
     ///
     /// # Arguments
     ///
     /// * `n_nodes` - An `usize` value with the number of nodes in the graph.
-    /// * `edges` - A vector of triplets with two `usize` values and a `f32` defining each edge (`(src, dest, weight)`).
+    /// * `edges` - A vector of triplets with two `usize` values and a `f32`
+    ///             defining each edge (`(src, dest, weight)`).
     ///
     /// # Panics
     ///
@@ -103,8 +106,54 @@ impl Graph {
         Graph { n_nodes, adj_mat }
     }
 
-    /// Creates a `Graph` from an adjacency matrix. The `f32` values represent the weights of the connections.
-    /// A `f32` value of 0.0 means that there is no connection.
+    /// Creates an undirected `Graph` from the definition of the graph edges
+    /// (with weight) and the number of nodes.
+    ///
+    /// # Arguments
+    ///
+    /// * `n_nodes` - An `usize` value with the number of nodes in the graph.
+    /// * `edges` - A vector of triplets with two `usize` values and a `f32`
+    ///             defining each edge (`(src, dest, weight)`).
+    ///
+    /// # Panics
+    ///
+    /// * If some edge has an invalid node value.
+    /// * If the pair (src, dest, _) of an edge is repeated.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let n_nodes = 3;
+    /// let edges = vec![(0, 1, 2.0), (1, 2, 1.5), (2, 2, -0.5)];
+    /// let g = graphst::Graph::from_weighted_edges(n_nodes, edges);
+    /// ```
+    pub fn from_weighted_edges_undirected(
+        n_nodes: usize,
+        edges: Vec<(usize, usize, f32)>,
+    ) -> Graph {
+        let mut adj_mat: Vec<Vec<f32>> = vec![vec![0.0; n_nodes]; n_nodes];
+        for edge in edges {
+            if edge.0 >= n_nodes || edge.1 >= n_nodes {
+                panic!(
+                    "[Graph::from_weighted_edges_undirected] Error: The edge {:?} is not valid!",
+                    edge
+                );
+            }
+            if adj_mat[edge.0][edge.1] != 0.0 {
+                panic!(
+                    "[Graph::from_weighted_edges_undirected] Error: The edge ({})->({}) is repeated!",
+                    edge.0, edge.1
+                );
+            } else {
+                adj_mat[edge.0][edge.1] = edge.2;
+                adj_mat[edge.1][edge.0] = edge.2;
+            }
+        }
+        Graph { n_nodes, adj_mat }
+    }
+
+    /// Creates a `Graph` from an adjacency matrix. The `f32` values represent the weights
+    /// of the connections. A `f32` value of 0.0 means that there is no connection.
     ///
     /// # Arguments
     ///
@@ -149,7 +198,7 @@ impl Graph {
     pub fn get_n_nodes(&self) -> usize {
         self.n_nodes
     }
-    
+
     /// Returns a vector with nodes (`usize` references) of the graph.
     ///
     /// # Examples
@@ -422,12 +471,14 @@ impl Graph {
     pub fn add_undirected_weighted_connection(&mut self, src: usize, dest: usize, weight: f32) {
         if src >= self.n_nodes {
             panic!(
-                "[Graph::add_undirected_weighted_connection] Error: The source node {} is not valid!", 
+                "[Graph::add_undirected_weighted_connection] Error: The source node {}\
+                 is not valid!", 
                 src
             );
         } else if dest >= self.n_nodes {
             panic!(
-                "[Graph::add_undirected_weighted_connection] Error: The destination node {} is not valid!", 
+                "[Graph::add_undirected_weighted_connection] Error: The destination node {}\
+                 is not valid!", 
                 dest
             );
         }
@@ -611,6 +662,56 @@ mod tests {
         let n_nodes = 3;
         let edges = vec![(0, 1, 2.3), (1, 2, 1.2), (1, 2, -1.0)];
         let _g = Graph::from_weighted_edges(n_nodes, edges);
+    }
+
+    #[test]
+    fn constructor_from_weighted_edges_undirected() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1, 2.3), (1, 2, 1.2)];
+        let g = Graph::from_weighted_edges_undirected(n_nodes, edges);
+        assert_eq!(g.n_nodes, 3);
+        // Check that the adjacency matrix is squared
+        assert_eq!(g.adj_mat.len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[0].len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[1].len(), 3, "The matrix is not squared.");
+        assert_eq!(g.adj_mat[2].len(), 3, "The matrix is not squared.");
+        // Check edges weights and symetry (because are undirected)
+        assert_eq!(
+            g.adj_mat[0][1], 2.3,
+            "This edge should be 2.3 but is {}",
+            g.adj_mat[0][1]
+        );
+        assert_eq!(
+            g.adj_mat[1][0], g.adj_mat[0][1],
+            "This edge should be symetric, {} != {}",
+            g.adj_mat[1][0], g.adj_mat[0][1]
+        );
+        assert_eq!(
+            g.adj_mat[1][2], 1.2,
+            "This edge should be 1.2 but is {}",
+            g.adj_mat[1][2]
+        );
+        assert_eq!(
+            g.adj_mat[2][1], g.adj_mat[1][2],
+            "This edge should be symetric, {} != {}",
+            g.adj_mat[2][1], g.adj_mat[1][2]
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "not valid")]
+    fn constructor_from_weighted_edges_undirected_panic_not_valid_edge() {
+        let n_nodes = 2;
+        let edges = vec![(0, 1, 1.5), (2, 0, 1.1)];
+        let _g = Graph::from_weighted_edges_undirected(n_nodes, edges);
+    }
+
+    #[test]
+    #[should_panic(expected = "is repeated")]
+    fn constructor_from_weighted_edges_undirected_panic_repeated_edge() {
+        let n_nodes = 3;
+        let edges = vec![(0, 1, 2.3), (1, 2, 1.2), (1, 2, -1.0)];
+        let _g = Graph::from_weighted_edges_undirected(n_nodes, edges);
     }
 
     #[test]

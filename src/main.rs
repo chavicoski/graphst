@@ -19,7 +19,7 @@ fn main() {
         (6, 8, 6.0),
         (7, 8, 8.0),
     ];
-    let g = Graph::from_weighted_edges(n_nodes, edges);
+    let g = Graph::from_weighted_edges_undirected(n_nodes, edges);
     println!("g:\n{}", g);
     println!("dijkstra g:\n{:?}", algorithm::dijkstra(&g, 0));
 }
