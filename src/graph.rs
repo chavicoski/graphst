@@ -34,7 +34,7 @@ impl Graph {
     /// # Panics
     ///
     /// * If some edge has an invalid node value.
-    /// * If the pair (src, dest) of an edge is repeated.
+    /// * If the pair `(src, dest)` of an edge is repeated.
     ///
     /// # Examples
     ///
@@ -76,7 +76,7 @@ impl Graph {
     /// # Panics
     ///
     /// * If some edge has an invalid node value.
-    /// * If the pair (src, dest) of an edge is repeated.
+    /// * If the pair `(src, dest)` of an edge is repeated.
     ///
     /// # Examples
     ///
@@ -119,7 +119,7 @@ impl Graph {
     /// # Panics
     ///
     /// * If some edge has an invalid node value.
-    /// * If the pair (src, dest, _) of an edge is repeated.
+    /// * If the pair `(src, dest, _)` of an edge is repeated.
     ///
     /// # Examples
     ///
@@ -161,7 +161,7 @@ impl Graph {
     /// # Panics
     ///
     /// * If some edge has an invalid node value.
-    /// * If the pair (src, dest, _) of an edge is repeated.
+    /// * If the pair `(src, dest, _)` of an edge is repeated.
     ///
     /// # Examples
     ///
