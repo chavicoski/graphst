@@ -1,5 +1,5 @@
-use graphst::Graph;
 use graphst::algorithm;
+use graphst::Graph;
 
 fn main() {
     let n_nodes = 9;

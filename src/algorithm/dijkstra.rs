@@ -10,10 +10,22 @@ fn min_distance_node(g: &Graph, dist: &Vec<f32>, path: &Vec<bool>) -> usize {
             min_idx = node;
         }
     }
-    
+
     return min_idx;
 }
 
+/// Given a `Graph` and a source node, returns the shortest path to each node
+/// from the source provided.
+///
+/// # Examples
+///
+/// ```
+/// let n_nodes = 3;
+/// let edges = vec![(0, 1), (1, 2), (2, 2)];
+/// let g = graphst::Graph::from_edges(n_nodes, edges);
+/// let short_paths = graphst::algorithm::dijkstra(&g, 0);
+/// assert_eq!(short_paths, vec![0.0, 1.0, 2.0]);
+/// ```
 pub fn dijkstra(g: &Graph, src: usize) -> Vec<f32> {
     let mut dist = vec![f32::INFINITY; g.get_n_nodes()];
     let mut path = vec![false; g.get_n_nodes()];
@@ -24,9 +36,10 @@ pub fn dijkstra(g: &Graph, src: usize) -> Vec<f32> {
         let c = min_distance_node(g, &dist, &path); // Closest node
         path[c] = true;
         for n in g.get_nodes() {
-            if g.get_edge(c, n).is_some() && 
-            path[n] == false && 
-            dist[n] > dist[c] + g.get_edge(c, n).unwrap() {
+            if g.get_edge(c, n).is_some()
+                && path[n] == false
+                && dist[n] > dist[c] + g.get_edge(c, n).unwrap()
+            {
                 dist[n] = dist[c] + g.get_edge(c, n).unwrap();
             }
         }

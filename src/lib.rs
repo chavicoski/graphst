@@ -1,6 +1,7 @@
 //! # Graphst
 //!
-//! `graphst` is a library to create and manipulate graphs.
+//! `graphst` is a library to create and manipulate graphs. It also provides some
+//! implementations of popular graph algorithms.
 
 mod graph;
 pub use graph::Graph;
