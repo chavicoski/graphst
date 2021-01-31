@@ -35,7 +35,8 @@ impl Graph {
     /// # Panics
     ///
     /// * If some edge has an invalid node value.
-    /// * If the pair `(node1, node2)` of an edge is repeated.
+    /// * If the edge `(node1, node2)` is repeated. Note that `(node1, node2)` is
+    ///   the same edge than `(node2, node1)` because the graph is undirected.
     ///
     /// # Examples
     ///
@@ -79,7 +80,8 @@ impl Graph {
     /// # Panics
     ///
     /// * If some edge has an invalid node value.
-    /// * If the pair `(node1, node2, _)` of an edge is repeated.
+    /// * If the edge `(node1, node2, _)` is repeated. Note that `(node1, node2, _)` is
+    ///   the same edge than `(node2, node1, _)` because the graph is undirected.
     ///
     /// # Examples
     ///
@@ -175,7 +177,7 @@ impl Graph {
 
     /// Returns a reference to the bidimensional vector of `f32` with the adjacency
     /// matrix of the graph. The `f32` values are the weights of the edges, and a
-    /// value of 0.0 means that there is no edge between those nodes.
+    /// value of `0.0` means that there is no edge between those nodes.
     ///
     /// # Examples
     ///

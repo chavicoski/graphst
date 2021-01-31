@@ -170,7 +170,7 @@ impl DGraph {
 
     /// Returns a reference to the bidimensional vector of `f32` with the adjacency
     /// matrix of the graph. The `f32` values are the weights of the edges, and a
-    /// value of 0.0 means that there is no edge between those nodes.
+    /// value of `0.0` means that there is no edge between those nodes.
     ///
     /// # Examples
     ///
