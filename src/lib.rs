@@ -6,4 +6,7 @@
 mod graph;
 pub use graph::Graph;
 
+mod dgraph;
+pub use dgraph::DGraph; // Directed Graph
+
 pub mod algorithm;
