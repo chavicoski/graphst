@@ -123,6 +123,8 @@ impl Graph {
     /// # Panics
     ///
     /// * If the adjacency matrix is not squared.
+    /// * If the adjacency matrix is not valid for an undirected graph.
+    ///   For each pair of nodes `adj_mat[n1][n2] == adj_mat[n2][n1]`.
     ///
     /// # Examples
     ///
@@ -130,6 +132,8 @@ impl Graph {
     /// let n_nodes = 5;
     /// let mut adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
     /// adj_mat[0][4] = 1.0;
+    /// adj_mat[4][0] = 1.0;
+    /// adj_mat[2][4] = 2.0;
     /// adj_mat[4][2] = 2.0;
     /// let g = graphst::Graph::from_adjacency_matrix(adj_mat);
     /// ```
@@ -142,7 +146,14 @@ impl Graph {
                 );
             }
         }
-        Graph { n_nodes, adj_mat }
+        let g = Graph { n_nodes, adj_mat };
+        if !g.check_is_undirected() {
+            panic!(
+                "[Graph::from_adjacency_matrix] Error: The adjacency matrix provided is \
+                not a valid matrix for an undirected graph!"
+            );
+        }
+        return g;
     }
 
     /// Returns the number of nodes in the graph.
@@ -358,19 +369,32 @@ impl Graph {
     pub fn add_weighted_edge(&mut self, node1: usize, node2: usize, weight: f32) {
         if node1 >= self.n_nodes {
             panic!(
-                "[Graph::add_weighted_edge] Error: The first node {}\
+                "[Graph::add_weighted_edge] Error: The first node {} \
                  is not valid!",
                 node1
             );
         } else if node2 >= self.n_nodes {
             panic!(
-                "[Graph::add_weighted_edge] Error: The second node {}\
+                "[Graph::add_weighted_edge] Error: The second node {} \
                  is not valid!",
                 node2
             );
         }
         self.adj_mat[node1][node2] = weight;
         self.adj_mat[node2][node1] = weight;
+    }
+
+    // Private functions
+
+    fn check_is_undirected(&self) -> bool {
+        for n in self.get_nodes() {
+            for n2 in n..self.get_n_nodes() {
+                if self.adj_mat[n][n2] != self.adj_mat[n2][n] {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
 
@@ -506,8 +530,10 @@ mod tests {
         let n_nodes = 3;
         let mut adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
         adj_mat[0][1] = 1.0;
+        adj_mat[1][0] = 1.0;
         adj_mat[1][1] = 0.5;
         adj_mat[1][2] = 2.0;
+        adj_mat[2][1] = 2.0;
         adj_mat[2][2] = -1.0;
         let g = Graph::from_adjacency_matrix(adj_mat);
         assert_eq!(
@@ -526,8 +552,8 @@ mod tests {
             g.adj_mat[0][2]
         );
         assert_eq!(
-            g.adj_mat[1][0], 0.0,
-            "This edge should be 0.0 but is {}",
+            g.adj_mat[1][0], 1.0,
+            "This edge should be 1.0 but is {}",
             g.adj_mat[1][0]
         );
         assert_eq!(
@@ -546,8 +572,8 @@ mod tests {
             g.adj_mat[2][0]
         );
         assert_eq!(
-            g.adj_mat[2][1], 0.0,
-            "This edge should be 0.0 but is {}",
+            g.adj_mat[2][1], 2.0,
+            "This edge should be 2.0 but is {}",
             g.adj_mat[2][1]
         );
         assert_eq!(
@@ -560,7 +586,7 @@ mod tests {
     #[test]
     #[should_panic(expected = "not squared")]
     fn constructor_from_adjacency_matrix_panic_not_squared() {
-        let adj_mat = vec![vec![0.0, 1.1], vec![1.0, 0.0, 0.0]];
+        let adj_mat = vec![vec![0.0, 1.1], vec![1.1, 0.0, 0.0]];
         let _g = Graph::from_adjacency_matrix(adj_mat);
     }
 
@@ -633,8 +659,8 @@ mod tests {
     fn get_edge_check_values() {
         let adj_mat: Vec<Vec<f32>> = vec![
             vec![0.0, 1.0, 0.0],
-            vec![0.0, 0.0, 0.5],
-            vec![0.0, 0.0, 2.0],
+            vec![1.0, 0.0, 0.5],
+            vec![0.0, 0.5, 2.0],
         ];
         let g = Graph::from_adjacency_matrix(adj_mat);
         let edge_0_1 = g.get_edge(0, 1).expect("The edge doesn't exist");
@@ -650,8 +676,8 @@ mod tests {
     fn get_edge_panic_not_valid_first_node() {
         let adj_mat: Vec<Vec<f32>> = vec![
             vec![0.0, 1.0, 0.0],
-            vec![0.0, 0.0, 0.5],
-            vec![0.0, 0.0, 2.0],
+            vec![1.0, 0.0, 0.5],
+            vec![0.0, 0.5, 2.0],
         ];
         let g = Graph::from_adjacency_matrix(adj_mat);
         let _edge_0_3 = g.get_edge(3, 2).expect("The edge doesn't exist");
@@ -662,8 +688,8 @@ mod tests {
     fn get_edge_panic_not_valid_second_node() {
         let adj_mat: Vec<Vec<f32>> = vec![
             vec![0.0, 1.0, 0.0],
-            vec![0.0, 0.0, 0.5],
-            vec![0.0, 0.0, 2.0],
+            vec![1.0, 0.0, 0.5],
+            vec![0.0, 0.5, 2.0],
         ];
         let g = Graph::from_adjacency_matrix(adj_mat);
         let _edge_0_3 = g.get_edge(0, 3).expect("The edge doesn't exist");
@@ -742,5 +768,34 @@ mod tests {
         let adj_mat = vec![vec![0.0; n_nodes]; n_nodes];
         let mut g = Graph::from_adjacency_matrix(adj_mat);
         g.add_weighted_edge(2, 3, 2.0);
+    }
+
+    #[test]
+    fn check_is_undirected_must_be_true() {
+        let adj_mat: Vec<Vec<f32>> = vec![
+            vec![0.0, 1.0, 0.0],
+            vec![1.0, 0.0, 0.5],
+            vec![0.0, 0.5, 2.0],
+        ];
+        let g = Graph::from_adjacency_matrix(adj_mat);
+        assert_eq!(g.check_is_undirected(), true);
+        let adj_mat: Vec<Vec<f32>> = vec![
+            vec![2.0, 0.0, 1.0],
+            vec![0.0, 1.0, 0.0],
+            vec![1.0, 0.0, 2.0],
+        ];
+        let g = Graph::from_adjacency_matrix(adj_mat);
+        assert_eq!(g.check_is_undirected(), true);
+    }
+
+    #[test]
+    #[should_panic(expected = "not a valid matrix for an undirected graph")]
+    fn check_is_undirected_panic_not_valid_for_undirected() {
+        let adj_mat: Vec<Vec<f32>> = vec![
+            vec![0.0, 4.0, 0.0],
+            vec![1.0, 0.0, 0.5],
+            vec![0.0, 0.5, 2.0],
+        ];
+        let _g = Graph::from_adjacency_matrix(adj_mat);
     }
 }
